@@ -1,22 +1,9 @@
-import { auth, db } from "./firebase.js";
-
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { supabase } from "./supabase.js";
 
 const $ = (id) => document.getElementById(id);
 
 let gameLoaded = false;
+let currentUserId = null;
 
 function showMessage(message) {
   $("authMessage").textContent = message;
@@ -24,17 +11,100 @@ function showMessage(message) {
 
 function showAuthForm(mode) {
   $("registerFields").classList.toggle("hidden", mode !== "register");
-  $("authTitle").textContent = mode === "register" ? "Create Account" : "Welcome Back";
-  $("authSubmit").textContent = mode === "register" ? "Register" : "Login";
-  $("switchAuth").textContent = mode === "register"
-    ? "Already have an account? Login"
-    : "No account yet? Register";
+  $("authTitle").textContent =
+    mode === "register" ? "Create Account" : "Welcome Back";
+
+  $("authSubmit").textContent =
+    mode === "register" ? "Register" : "Login";
+
+  $("switchAuth").textContent =
+    mode === "register"
+      ? "Already have an account? Login"
+      : "No account yet? Register";
+
   $("authMode").value = mode;
   showMessage("");
 }
 
+async function loadProfile(user) {
+  const { data: existing, error: readError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (readError) throw readError;
+
+  if (existing) return existing;
+
+  const username =
+    user.user_metadata?.username ||
+    user.email?.split("@")[0] ||
+    "Player";
+
+  const newProfile = {
+    id: user.id,
+    username,
+    email: user.email,
+    exp: 0,
+    rank: "Beginner",
+    level: 1,
+    money: 0
+  };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert(newProfile)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+async function showDashboard(user) {
+  if (currentUserId === user.id) return;
+
+  currentUserId = user.id;
+
+  try {
+    showMessage("Loading player profile...");
+
+    const profile = await loadProfile(user);
+
+    $("profileName").textContent = profile.username || "Player";
+    $("playerName").value = profile.username || "Player";
+
+    $("authPanel").classList.add("hidden");
+    $("profileBar").classList.remove("hidden");
+    $("setup").classList.remove("hidden");
+    $("gamePanel").classList.add("hidden");
+
+    if (!gameLoaded) {
+      await import("./client.js");
+      gameLoaded = true;
+    }
+  } catch (error) {
+    currentUserId = null;
+    $("authPanel").classList.remove("hidden");
+    showMessage("Profile error: " + error.message);
+  }
+}
+
+function showLoggedOut() {
+  currentUserId = null;
+
+  $("authPanel").classList.remove("hidden");
+  $("profileBar").classList.add("hidden");
+  $("setup").classList.add("hidden");
+  $("gamePanel").classList.add("hidden");
+}
+
 $("switchAuth").addEventListener("click", () => {
-  showAuthForm($("authMode").value === "login" ? "register" : "login");
+  showAuthForm(
+    $("authMode").value === "login" ? "register" : "login"
+  );
 });
 
 $("authForm").addEventListener("submit", async (event) => {
@@ -49,6 +119,10 @@ $("authForm").addEventListener("submit", async (event) => {
     return showMessage("Username must have at least 3 characters.");
   }
 
+  if (mode === "register" && username.length > 16) {
+    return showMessage("Username must not exceed 16 characters.");
+  }
+
   if (password.length < 6) {
     return showMessage("Password must have at least 6 characters.");
   }
@@ -58,35 +132,45 @@ $("authForm").addEventListener("submit", async (event) => {
 
   try {
     if (mode === "register") {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      const profile = doc(db, "users", result.user.uid);
-
-      await setDoc(profile, {
-        uid: result.user.uid,
-        username,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        exp: 0,
-        rank: "Beginner",
-        level: 1,
-        money: 0,
-        createdAt: serverTimestamp()
+        password,
+        options: {
+          data: { username }
+        }
       });
 
-      showMessage("Account created successfully!");
+      if (error) throw error;
+
+      if (data.session && data.user) {
+        await showDashboard(data.user);
+      } else {
+        showMessage(
+          "Registration successful! Check your email to confirm your account, then login."
+        );
+      }
     } else {
-      await signInWithEmailAndPassword(auth, email, password);
-      showMessage("Login successful!");
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      if (error) throw error;
+
+      if (data.user) {
+        await showDashboard(data.user);
+      }
     }
   } catch (error) {
     const messages = {
-      "auth/email-already-in-use": "This email is already registered.",
-      "auth/invalid-email": "Enter a valid email address.",
-      "auth/invalid-credential": "Incorrect email or password.",
-      "auth/weak-password": "Password must be at least 6 characters.",
-      "auth/network-request-failed": "Network error. Check your internet."
+      "Invalid login credentials": "Incorrect email or password.",
+      "User already registered": "This email is already registered.",
+      "Email not confirmed": "Please confirm your email first.",
+      "duplicate key value violates unique constraint": "That username may already be taken."
     };
 
-    showMessage(messages[error.code] || error.message);
+    showMessage(messages[error.message] || error.message);
   } finally {
     $("authSubmit").disabled = false;
   }
@@ -94,55 +178,37 @@ $("authForm").addEventListener("submit", async (event) => {
 
 $("logoutBtn").addEventListener("click", async () => {
   try {
-    await signOut(auth);
-    location.reload();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+
+    showLoggedOut();
+    showAuthForm("login");
   } catch (error) {
-    showMessage(error.message);
+    showMessage("Logout error: " + error.message);
   }
 });
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    $("authPanel").classList.remove("hidden");
-    $("setup").classList.add("hidden");
-    $("gamePanel").classList.add("hidden");
-    $("profileBar").classList.add("hidden");
+async function initializeAuth() {
+  showAuthForm("login");
+
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    showMessage(error.message);
     return;
   }
 
-  try {
-    const profileRef = doc(db, "users", user.uid);
-    const profileSnap = await getDoc(profileRef);
+  if (data.session?.user) {
+    await showDashboard(data.session.user);
+  } else {
+    showLoggedOut();
+  }
+}
 
-    if (!profileSnap.exists()) {
-      await setDoc(profileRef, {
-        uid: user.uid,
-        username: user.email.split("@")[0],
-        email: user.email,
-        exp: 0,
-        rank: "Beginner",
-        level: 1,
-        money: 0,
-        createdAt: serverTimestamp()
-      });
-    }
-
-    const profile = (await getDoc(profileRef)).data();
-
-    $("profileName").textContent = profile.username || "Player";
-    $("playerName").value = profile.username || "Player";
-    $("authPanel").classList.add("hidden");
-    $("profileBar").classList.remove("hidden");
-    $("setup").classList.remove("hidden");
-
-    if (!gameLoaded) {
-      gameLoaded = true;
-      await import("./client.js");
-    }
-  } catch (error) {
-    showMessage("Could not load your player profile: " + error.message);
-    $("authPanel").classList.remove("hidden");
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT") {
+    showLoggedOut();
   }
 });
 
-showAuthForm("login");
+initializeAuth();
