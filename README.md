@@ -78,3 +78,7 @@ The current Firestore rules let signed-in players update their own player docume
 ## Email verification flow
 
 Registration and login are separate screens. After registration, Firebase sends an email verification link. The user must open that link and then tap “I've verified” before the game profile loads. Unverified users who try to log in are sent to the verification screen, where they can resend the email or log out. Firebase Authentication handles the email link; no custom email server is needed.
+
+## Loading screen diagnostics
+
+The page now shows a diagnostic message if the Firebase module does not start within 12 seconds. Firestore profile reads and Firebase Authentication refresh checks have timeouts, so a stalled request shows a retryable error rather than an endless spinner. A timeout identifies a connection/configuration problem; it does not automatically repair Firebase connectivity.

@@ -113,6 +113,23 @@
     </section>
     <footer>Pick & Guess · Have fun and play fair.</footer>
   </main>
-  <script type="module" src="./app.js"></script>
+  <script>
+    // Diagnose a module that fails to start before the app can change screens.
+    window.setTimeout(() => {
+      const panel = document.getElementById("loadingPanel");
+      const message = document.getElementById("loadingMessage");
+      if (panel && !panel.hidden && message && message.textContent.includes("Checking your sign-in")) {
+        message.textContent = "The game script did not finish starting. Refresh this page. If it continues, check that app.js and firebase-config.js are in the repository root.";
+      }
+    }, 12000);
+    window.addEventListener("error", () => {
+      const panel = document.getElementById("loadingPanel");
+      const message = document.getElementById("loadingMessage");
+      if (panel && !panel.hidden && message) {
+        message.textContent = "A JavaScript error stopped the game from starting. Refresh the page and check the app.js file.";
+      }
+    });
+  </script>
+  <script type="module" src="./app.js?v=20261114-1200"></script>
 </body>
 </html>

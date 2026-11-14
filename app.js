@@ -12,6 +12,15 @@ const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 const rtdb = getDatabase(app);
 const $ = id => document.getElementById(id);
 
+// Stop stalled Firebase requests from leaving the page on an endless spinner.
+function withTimeout(promise, milliseconds, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out. Check your internet and Firebase settings, then retry.`)), milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 let user = null, profile = null, secret = 0, attempts = 3, extraUsed = false;
 let currentRoom = null, roomListener = null, guessListener = null;
 let authReady = false;
@@ -64,7 +73,7 @@ function renderProfile() {
   $("accountBadge").textContent = profile.username || user.email || "Signed in";
 }
 async function loadProfile() {
-  const snap = await getDoc(profileRef());
+  const snap = await withTimeout(getDoc(profileRef()), 15000, "Firestore profile request");
   if (!snap.exists()) {
     const newProfile = {
       uid:user.uid,
@@ -72,7 +81,7 @@ async function loadProfile() {
       exp:0, coins:20, wins:0, losses:0, score:0,
       createdAt:serverTimestamp()
     };
-    await setDoc(profileRef(), newProfile);
+    await withTimeout(setDoc(profileRef(), newProfile), 15000, "Creating player profile");
     profile = {...newProfile};
   } else {
     profile = snap.data();
@@ -163,7 +172,7 @@ $("loginBtn").onclick = async () => {
     const credential = await signInWithEmailAndPassword(
       auth, $("loginEmail").value.trim(), $("loginPassword").value
     );
-    await reload(credential.user);
+    await withTimeout(reload(credential.user), 12000, "Firebase Authentication check");
     user = auth.currentUser;
     if (!user.emailVerified) {
       $("verifyEmail").textContent = user.email || "";
@@ -191,7 +200,7 @@ $("resendVerifyBtn").onclick = async () => {
 $("checkVerifiedBtn").onclick = async () => {
   try {
     if (!auth.currentUser) throw new Error("Your session expired. Please log in again.");
-    await reload(auth.currentUser);
+    await withTimeout(reload(auth.currentUser), 12000, "Email verification check");
     user = auth.currentUser;
     if (!user.emailVerified) {
       showMessage("verifyMessage", "Not verified yet. Open the email link first, then try again.");
@@ -221,7 +230,7 @@ onAuthStateChanged(auth, async currentUser => {
   }
   $("accountBadge").textContent = "Checking email…";
   try {
-    await reload(user);
+    await withTimeout(reload(user), 12000, "Firebase Authentication check");
     user = auth.currentUser;
     if (!user.emailVerified) {
       $("verifyEmail").textContent = user.email || "";
