@@ -3,7 +3,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDgd_-OLm8DaULaQyn2qI9-ukzDcZAAOpA",
+  apiKey: "AIzaSyDgd_-OLm8DaULaQynq2I9-ukzDcZAAOpA",
   authDomain: "pick-and-guess.firebaseapp.com",
   projectId: "pick-and-guess",
   storageBucket: "pick-and-guess.firebasestorage.app",
