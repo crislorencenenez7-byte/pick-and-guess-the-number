@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>Pick & Guess</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><p class="eyebrow">NUMBER CHALLENGE</p><h1>Pick <span>&</span> Guess</h1></div>
+      <div id="accountBadge" class="account-badge">Not signed in</div>
+    </header>
+
+    <section id="authPanel" class="panel auth-panel">
+      <h2>Welcome, player!</h2>
+      <p class="muted">Sign in or create an account to save your progress.</p>
+      <label>Email<input id="email" type="email" autocomplete="email" placeholder="you@example.com"></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+      <label>Username<input id="username" maxlength="18" placeholder="Your player name (for sign up)"></label>
+      <div class="actions"><button id="signupBtn">Create account</button><button id="loginBtn" class="secondary">Log in</button></div>
+      <p id="authMessage" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="gameApp" hidden>
+      <section class="stats-grid">
+        <article class="stat"><small>RANK</small><strong id="rank">Beginner</strong></article>
+        <article class="stat"><small>LEVEL</small><strong id="level">1</strong></article>
+        <article class="stat"><small>EXP</small><strong id="exp">0 / 30</strong></article>
+        <article class="stat"><small>COINS</small><strong id="coins">0</strong></article>
+      </section>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="classic">Classic</button>
+        <button class="tab" data-tab="pvp">PvP</button>
+        <button class="tab" data-tab="leaderboard">Leaderboard</button>
+        <button class="tab" data-tab="profile">Profile</button>
+      </nav>
+
+      <section id="classicView" class="panel view">
+        <div class="section-heading"><div><p class="eyebrow">SOLO MODE</p><h2>Guess the number</h2></div><span class="pill">1–100</span></div>
+        <p class="muted">A secret number is waiting. You have 3 tries to find it.</p>
+        <div class="number-board" id="numberBoard" aria-label="Choose a number from 1 to 100"></div>
+        <div class="game-status" id="classicStatus" aria-live="polite">Choose your first number.</div>
+        <div class="actions wrap"><button id="hintBtn" class="secondary">Hint · 10 coins</button><button id="extraBtn" class="secondary">Extra try · 30 coins</button><button id="newGameBtn" class="ghost">New round</button></div>
+        <p class="muted tiny" id="attemptInfo">Attempts left: 3</p>
+      </section>
+
+      <section id="pvpView" class="panel view" hidden>
+        <p class="eyebrow">PLAY WITH A FRIEND</p><h2>Online PvP</h2>
+        <p class="muted">Create a room as the number picker, or join a friend's room as the guesser.</p>
+        <div class="actions wrap"><button id="createRoomBtn">Create room</button></div>
+        <div class="join-row"><input id="roomCodeInput" maxlength="6" placeholder="6-character room code"><button id="joinRoomBtn" class="secondary">Join</button></div>
+        <div id="pvpRoom" class="room-card" hidden>
+          <p class="muted">ROOM CODE</p><strong id="roomCode" class="room-code"></strong>
+          <p id="roomRole" class="message"></p>
+          <div id="secretPicker" hidden><label>Choose secret number (1–100)<input id="secretNumber" type="number" min="1" max="100" placeholder="Secret number"></label><button id="setSecretBtn">Lock secret number</button></div>
+          <div id="pvpGuessControls" hidden><label>Your guess<input id="pvpGuess" type="number" min="1" max="100" placeholder="1–100"></label><button id="sendGuessBtn">Submit guess</button></div>
+          <p id="pvpStatus" class="game-status" aria-live="polite">Waiting for another player…</p>
+          <button id="leaveRoomBtn" class="ghost">Leave room</button>
+        </div>
+        <p id="pvpMessage" class="message" aria-live="polite"></p>
+      </section>
+
+      <section id="leaderboardView" class="panel view" hidden>
+        <div class="section-heading"><div><p class="eyebrow">TOP PLAYERS</p><h2>Leaderboard</h2></div><button id="refreshBoardBtn" class="secondary small">Refresh</button></div>
+        <div id="leaderboardList" class="leaderboard-list"><p class="muted">Sign in to load scores.</p></div>
+      </section>
+
+      <section id="profileView" class="panel view" hidden>
+        <p class="eyebrow">PLAYER CARD</p><h2 id="profileName">Player</h2>
+        <div class="profile-grid">
+          <div><small>WINS</small><strong id="wins">0</strong></div><div><small>LOSSES</small><strong id="losses">0</strong></div><div><small>SCORE</small><strong id="score">0</strong></div>
+        </div>
+        <p class="muted tiny">Coins are earned by playing. They have no cash value and cannot be withdrawn.</p>
+        <button id="logoutBtn" class="danger">Log out</button>
+      </section>
+    </section>
+    <footer>Pick & Guess · Have fun and play fair.</footer>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
