@@ -11,10 +11,17 @@
   <main class="shell">
     <header class="topbar">
       <div><p class="eyebrow">NUMBER CHALLENGE</p><h1>Pick <span>&</span> Guess</h1></div>
-      <div id="accountBadge" class="account-badge">Not signed in</div>
+      <div id="accountBadge" class="account-badge">Checking account…</div>
     </header>
 
-    <section id="authPanel" class="panel auth-panel">
+    <section id="loadingPanel" class="panel auth-panel">
+      <h2>Connecting to Firebase…</h2>
+      <p id="loadingMessage" class="muted" aria-live="polite">Checking your sign-in and loading player data.</p>
+      <button id="retryBtn" class="secondary" hidden>Retry connection</button>
+      <button id="loadingLogoutBtn" class="ghost" hidden>Log out</button>
+    </section>
+
+    <section id="authPanel" class="panel auth-panel" hidden>
       <h2>Welcome, player!</h2>
       <p class="muted">Sign in or create an account to save your progress.</p>
       <label>Email<input id="email" type="email" autocomplete="email" placeholder="you@example.com"></label>
@@ -66,7 +73,7 @@
 
       <section id="leaderboardView" class="panel view" hidden>
         <div class="section-heading"><div><p class="eyebrow">TOP PLAYERS</p><h2>Leaderboard</h2></div><button id="refreshBoardBtn" class="secondary small">Refresh</button></div>
-        <div id="leaderboardList" class="leaderboard-list"><p class="muted">Sign in to load scores.</p></div>
+        <div id="leaderboardList" class="leaderboard-list"><p class="muted">Loading scores…</p></div>
       </section>
 
       <section id="profileView" class="panel view" hidden>

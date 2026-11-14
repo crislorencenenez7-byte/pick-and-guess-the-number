@@ -1,4 +1,5 @@
-// Firebase Web App configuration for Pick & Guess.
+// Firebase Web App configuration. This config is intended for browser apps.
+// Never put Firebase service-account JSON or private private keys in this file.
 export const firebaseConfig = {
   apiKey: "AIzaSyDgd_-OLm8DaULaQynq2I9-ukzDcZAAOpA",
   authDomain: "pick-and-guess.firebaseapp.com",

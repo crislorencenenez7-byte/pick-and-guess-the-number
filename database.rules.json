@@ -2,10 +2,10 @@
   "rules": {
     "rooms": {
       "$room": {
-        ".read": "auth != null && (data.child('guestUid').val() === null || auth.uid === data.child('hostUid').val() || auth.uid === data.child('guestUid').val())",
+        ".read": "auth != null",
         ".write": "auth != null && !data.exists() && newData.child('hostUid').val() === auth.uid",
         "guestUid": {
-          ".write": "auth != null && auth.uid === newData.val() && !data.exists()"
+          ".write": "auth != null && auth.uid === newData.val() && data.val() === null && root.child('rooms').child($room).child('hostUid').exists()"
         },
         "status": {
           ".write": "auth != null && auth.uid === root.child('rooms').child($room).child('hostUid').val()"
