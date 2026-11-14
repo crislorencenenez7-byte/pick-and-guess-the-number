@@ -7,13 +7,17 @@ This is a static GitHub Pages web app using Firebase Authentication, Cloud Fires
 ```text
 pick-and-guess-the-number/
 ├── index.html
-├── app.js
-├── firebase-config.js
-├── style.css
-├── firestore.rules
-├── database.rules.json
 ├── README.md
-└── .nojekyll
+├── .nojekyll
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── app.js
+│       └── firebase-config.js
+└── firebase/
+    ├── firestore.rules
+    └── database.rules.json
 ```
 
 Do not publish from `public/` or `docs/` when using the root layout. In GitHub:
@@ -25,9 +29,9 @@ Settings → Pages → Deploy from a branch → `main` → `/(root)`.
 2. Authentication → Templates → Email address verification: customize the sender/message if desired. Firebase sends the verification link automatically from the app after registration.
 3. Authentication → Settings → Authorized domains: add `crislorencenenez7-byte.github.io`.
 4. Create Cloud Firestore database.
-5. Firestore → Rules: publish the contents of `firestore.rules`.
-6. Realtime Database → Rules: publish the contents of `database.rules.json`.
-7. Confirm `firebase-config.js` contains the Web App config for project `pick-and-guess`.
+5. Firestore → Rules: publish the contents of `firebase/firestore.rules`.
+6. Realtime Database → Rules: publish the contents of `firebase/database.rules.json`.
+7. Confirm `assets/js/firebase-config.js` contains the Web App config for project `pick-and-guess`.
 
 ## Firestore connection troubleshooting
 
