@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedInAndVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    match /players/{uid} {
+      allow read: if signedInAndVerified();
+      allow create: if signedInAndVerified()
+                    && request.auth.uid == uid
+                    && request.resource.data.uid == uid;
+      allow update: if signedInAndVerified()
+                    && request.auth.uid == uid
+                    && request.resource.data.uid == uid;
+      allow delete: if false;
+    }
+  }
+}
