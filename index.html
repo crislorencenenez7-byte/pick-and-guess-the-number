@@ -22,13 +22,39 @@
     </section>
 
     <section id="authPanel" class="panel auth-panel" hidden>
-      <h2>Welcome, player!</h2>
-      <p class="muted">Sign in or create an account to save your progress.</p>
-      <label>Email<input id="email" type="email" autocomplete="email" placeholder="you@example.com"></label>
-      <label>Password<input id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
-      <label>Username<input id="username" maxlength="18" placeholder="Your player name (for sign up)"></label>
-      <div class="actions"><button id="signupBtn">Create account</button><button id="loginBtn" class="secondary">Log in</button></div>
+      <div class="auth-switch">
+        <button id="showLoginBtn" class="auth-choice active">Login</button>
+        <button id="showRegisterBtn" class="auth-choice secondary">Register</button>
+      </div>
+      <div id="loginForm">
+        <p class="eyebrow">WELCOME BACK</p><h2>Login</h2>
+        <p class="muted">Sign in to continue your saved game.</p>
+        <label>Email<input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" placeholder="Your password"></label>
+        <button id="loginBtn" class="full">Login</button>
+      </div>
+      <div id="registerForm" hidden>
+        <p class="eyebrow">NEW PLAYER</p><h2>Create account</h2>
+        <p class="muted">Register first. We will send a verification link to your email.</p>
+        <label>Username<input id="registerUsername" maxlength="18" autocomplete="nickname" placeholder="Your player name"></label>
+        <label>Email<input id="registerEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+        <label>Password<input id="registerPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters"></label>
+        <button id="signupBtn" class="full">Register and send verification</button>
+      </div>
       <p id="authMessage" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="verifyPanel" class="panel auth-panel" hidden>
+      <p class="eyebrow">EMAIL VERIFICATION</p><h2>Verify your email</h2>
+      <p class="muted">We sent a verification link to:</p>
+      <strong id="verifyEmail" class="verify-email"></strong>
+      <p class="muted">Open your inbox, tap the link from Firebase, then return here and press “I've verified”. Check your Spam/Junk folder too.</p>
+      <div class="actions wrap">
+        <button id="checkVerifiedBtn">I've verified</button>
+        <button id="resendVerifyBtn" class="secondary">Resend email</button>
+      </div>
+      <p id="verifyMessage" class="message" aria-live="polite"></p>
+      <button id="verifyLogoutBtn" class="ghost">Use another account</button>
     </section>
 
     <section id="gameApp" hidden>

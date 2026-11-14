@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, sendEmailVerification, reload } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 import { initializeFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 import { getDatabase, ref, set, get, update, onValue, off } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
@@ -37,6 +37,7 @@ function profileRef() { return doc(db, "players", user.uid); }
 function setScreen(screen) {
   $("loadingPanel").hidden = screen !== "loading";
   $("authPanel").hidden = screen !== "auth";
+  $("verifyPanel").hidden = screen !== "verify";
   $("gameApp").hidden = screen !== "game";
 }
 function friendlyFirebaseError(error) {
@@ -120,22 +121,90 @@ async function spendCoins(cost) {
   return true;
 }
 
+function showAuthMode(mode) {
+  $("loginForm").hidden = mode !== "login";
+  $("registerForm").hidden = mode !== "register";
+  $("showLoginBtn").classList.toggle("active", mode === "login");
+  $("showRegisterBtn").classList.toggle("active", mode === "register");
+  showMessage("authMessage", "");
+}
+$("showLoginBtn").onclick = () => showAuthMode("login");
+$("showRegisterBtn").onclick = () => showAuthMode("register");
+
 $("signupBtn").onclick = async () => {
+  const button = $("signupBtn");
+  button.disabled = true;
   try {
-    const email=$("email").value.trim(), password=$("password").value;
-    const username=cleanName($("username").value);
-    if (!email || password.length < 6) throw new Error("Enter a valid email and a password with at least 6 characters.");
-    const credential=await createUserWithEmailAndPassword(auth,email,password);
-    await updateProfile(credential.user,{displayName:username});
-    showMessage("authMessage","Account created. Loading your profile…");
-  } catch(error) { showMessage("authMessage",friendlyFirebaseError(error)); }
+    const email = $("registerEmail").value.trim();
+    const password = $("registerPassword").value;
+    const username = cleanName($("registerUsername").value);
+    if (!email || password.length < 6)
+      throw new Error("Enter a valid email and a password with at least 6 characters.");
+    if (!$("registerUsername").value.trim())
+      throw new Error("Please enter a username.");
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(credential.user, { displayName: username });
+    await sendEmailVerification(credential.user);
+    user = credential.user;
+    $("verifyEmail").textContent = email;
+    showMessage("verifyMessage", "Verification email sent. Check your inbox.");
+    setScreen("verify");
+  } catch (error) {
+    showMessage("authMessage", friendlyFirebaseError(error));
+  } finally {
+    button.disabled = false;
+  }
 };
+
 $("loginBtn").onclick = async () => {
+  const button = $("loginBtn");
+  button.disabled = true;
   try {
-    await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);
-    showMessage("authMessage","Logged in. Loading your profile…");
-  } catch(error) { showMessage("authMessage",friendlyFirebaseError(error)); }
+    const credential = await signInWithEmailAndPassword(
+      auth, $("loginEmail").value.trim(), $("loginPassword").value
+    );
+    await reload(credential.user);
+    user = auth.currentUser;
+    if (!user.emailVerified) {
+      $("verifyEmail").textContent = user.email || "";
+      showMessage("verifyMessage", "Your email is not verified yet. Verify it before entering the game.");
+      setScreen("verify");
+      return;
+    }
+    await retryProfileLoad();
+  } catch (error) {
+    showMessage("authMessage", friendlyFirebaseError(error));
+  } finally {
+    button.disabled = false;
+  }
 };
+
+$("resendVerifyBtn").onclick = async () => {
+  try {
+    if (!auth.currentUser) throw new Error("Please log in again to request a verification email.");
+    await sendEmailVerification(auth.currentUser);
+    showMessage("verifyMessage", "A new verification email has been sent. Check your inbox and Spam/Junk folder.");
+  } catch (error) {
+    showMessage("verifyMessage", friendlyFirebaseError(error));
+  }
+};
+$("checkVerifiedBtn").onclick = async () => {
+  try {
+    if (!auth.currentUser) throw new Error("Your session expired. Please log in again.");
+    await reload(auth.currentUser);
+    user = auth.currentUser;
+    if (!user.emailVerified) {
+      showMessage("verifyMessage", "Not verified yet. Open the email link first, then try again.");
+      return;
+    }
+    showMessage("verifyMessage", "Email verified. Loading your player profile…");
+    await retryProfileLoad();
+  } catch (error) {
+    showMessage("verifyMessage", friendlyFirebaseError(error));
+  }
+};
+$("verifyLogoutBtn").onclick = () => signOut(auth);
+
 $("logoutBtn").onclick = () => signOut(auth);
 $("loadingLogoutBtn").onclick = () => signOut(auth);
 $("retryBtn").onclick = retryProfileLoad;
@@ -147,10 +216,26 @@ onAuthStateChanged(auth, async currentUser => {
     profile = null;
     $("accountBadge").textContent = "Not signed in";
     setScreen("auth");
+    showAuthMode("login");
     return;
   }
-  $("accountBadge").textContent = "Loading…";
-  await retryProfileLoad();
+  $("accountBadge").textContent = "Checking email…";
+  try {
+    await reload(user);
+    user = auth.currentUser;
+    if (!user.emailVerified) {
+      $("verifyEmail").textContent = user.email || "";
+      showMessage("verifyMessage", "Please verify your email before entering the game.");
+      setScreen("verify");
+      return;
+    }
+    await retryProfileLoad();
+  } catch (error) {
+    console.error("Authentication state check failed:", error);
+    $("loadingMessage").textContent = friendlyFirebaseError(error);
+    $("retryBtn").hidden = false;
+    setScreen("loading");
+  }
 });
 
 function startRound() {

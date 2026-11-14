@@ -23,6 +23,8 @@
         ".read": "auth != null && auth.uid === root.child('rooms').child($room).child('hostUid').val()",
         ".write": "auth != null && auth.uid === root.child('rooms').child($room).child('hostUid').val()"
       }
-    }
+    },
+    ".read": "auth != null && auth.token.email_verified == true",
+    ".write": "auth != null && auth.token.email_verified == true"
   }
 }

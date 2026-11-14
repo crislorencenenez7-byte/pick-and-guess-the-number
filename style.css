@@ -38,3 +38,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
 footer{text-align:center;color:#7788a3;font-size:.75rem;padding:20px}
 @media(max-width:560px){.shell{padding:16px 12px}.panel{padding:17px}.stats-grid{grid-template-columns:repeat(2,1fr)}.number-board{gap:4px}.number-board button{font-size:.72rem;padding:8px 0}.topbar{align-items:flex-start}.account-badge{max-width:130px;overflow:hidden;text-overflow:ellipsis}.actions{flex-wrap:wrap}.actions button{flex:1}}
+
+.auth-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px}
+.auth-choice{background:#24344d;color:var(--muted)}
+.auth-choice.active{background:var(--accent);color:#101827}
+.full{width:100%;margin-top:12px}
+.verify-email{display:block;overflow-wrap:anywhere;color:var(--accent);margin:8px 0 14px}

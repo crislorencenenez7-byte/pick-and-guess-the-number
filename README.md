@@ -22,11 +22,12 @@ Settings → Pages → Deploy from a branch → `main` → `/(root)`.
 ## Firebase setup
 
 1. Firebase Console → Authentication → Sign-in method → enable Email/Password.
-2. Authentication → Settings → Authorized domains: add `crislorencenenez7-byte.github.io`.
-3. Create Cloud Firestore database.
-4. Firestore → Rules: publish the contents of `firestore.rules`.
-5. Realtime Database → Rules: publish the contents of `database.rules.json`.
-6. Confirm `firebase-config.js` contains the Web App config for project `pick-and-guess`.
+2. Authentication → Templates → Email address verification: customize the sender/message if desired. Firebase sends the verification link automatically from the app after registration.
+3. Authentication → Settings → Authorized domains: add `crislorencenenez7-byte.github.io`.
+4. Create Cloud Firestore database.
+5. Firestore → Rules: publish the contents of `firestore.rules`.
+6. Realtime Database → Rules: publish the contents of `database.rules.json`.
+7. Confirm `firebase-config.js` contains the Web App config for project `pick-and-guess`.
 
 ## Firestore connection troubleshooting
 
@@ -73,3 +74,7 @@ GitHub Pages hosts the static frontend only. Firebase provides authentication an
 PvP is a friend-play prototype: the room creator's browser evaluates guesses and must remain online. It is not cheat-proof. A trusted server-side backend is required for secure competitive play and authoritative reward validation.
 
 The current Firestore rules let signed-in players update their own player document. This is adequate for an early prototype but does not prevent a modified browser from changing its own score/coins. For a public competitive game, move rewards and profile updates to trusted server-side code.
+
+## Email verification flow
+
+Registration and login are separate screens. After registration, Firebase sends an email verification link. The user must open that link and then tap “I've verified” before the game profile loads. Unverified users who try to log in are sent to the verification screen, where they can resend the email or log out. Firebase Authentication handles the email link; no custom email server is needed.
