@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10172a">
+  <title>Pick & Guess</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/">PICK <span>&</span> GUESS</a>
+      <div class="online"><i></i> Online multiplayer</div>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">THINK FAST. GUESS SMART.</p>
+      <h1>Pick a number.<br><span>Beat your friend.</span></h1>
+      <p class="subtitle">One secret number. Three chances. Can you guess it?</p>
+    </section>
+
+    <section id="setup" class="panel">
+      <label for="playerName">Your player name</label>
+      <input id="playerName" maxlength="16" placeholder="Enter your name" autocomplete="nickname">
+      <div class="setup-grid">
+        <button id="createBtn" class="primary">Create Room</button>
+        <div class="join-box">
+          <input id="roomCodeInput" maxlength="5" placeholder="ROOM CODE" aria-label="Room code">
+          <button id="joinBtn" class="secondary">Join</button>
+        </div>
+      </div>
+      <p class="small-note">Create a room and share its 5-character code with a friend.</p>
+    </section>
+
+    <section id="gamePanel" class="panel hidden">
+      <div class="room-heading">
+        <div>
+          <p class="muted-label">ROOM CODE</p>
+          <div class="code-line"><strong id="roomCode">-----</strong><button id="copyCodeBtn" class="copy-btn">Copy</button></div>
+        </div>
+        <span id="roundBadge" class="pill">Round 1</span>
+      </div>
+
+      <div class="players">
+        <div class="player-card"><span class="avatar">A</span><div><strong id="playerOne">Player 1</strong><small id="playerOneRole">Host</small></div></div>
+        <div class="versus">VS</div>
+        <div class="player-card"><span class="avatar alt">B</span><div><strong id="playerTwo">Waiting...</strong><small id="playerTwoRole">Opponent</small></div></div>
+      </div>
+
+      <div id="waitingState" class="state-box">
+        <div class="loader"></div>
+        <h2>Waiting for a player</h2>
+        <p>Send your room code to a friend to start.</p>
+      </div>
+
+      <div id="chooseState" class="state-box hidden">
+        <h2>Choose your secret number</h2>
+        <p>Your opponent will get 3 attempts to guess it.</p>
+        <div class="number-display"><span id="secretPreview">?</span></div>
+        <input id="secretInput" type="number" min="1" max="100" placeholder="1–100">
+        <button id="lockNumberBtn" class="primary full">Lock Secret Number</button>
+        <p class="small-note">Your number stays hidden from the other player.</p>
+      </div>
+
+      <div id="guessState" class="state-box hidden">
+        <div class="guess-header"><div><p class="muted-label">ATTEMPTS LEFT</p><h2 id="attemptsLeft">3</h2></div><span class="pill live">YOUR TURN</span></div>
+        <h2>Guess the number</h2>
+        <p>Choose a number from 1 to 100.</p>
+        <div class="guess-controls">
+          <input id="guessInput" type="number" min="1" max="100" placeholder="Your guess">
+          <button id="guessBtn" class="primary">Guess</button>
+        </div>
+        <p id="guessFeedback" class="feedback" aria-live="polite">Make your first guess!</p>
+      </div>
+
+      <div id="watchState" class="state-box hidden">
+        <div class="loader"></div><h2>Opponent is guessing...</h2>
+        <p>Wait for their next move.</p>
+      </div>
+
+      <div id="finishedState" class="state-box hidden">
+        <div class="trophy">🏆</div><h2 id="resultTitle">Round complete</h2>
+        <p id="resultMessage"></p>
+        <button id="nextRoundBtn" class="primary full">Next Round</button>
+      </div>
+
+      <div class="bottom-actions">
+        <p id="statusMessage" class="status" aria-live="polite">Connected</p>
+        <button id="leaveBtn" class="text-btn">Leave room</button>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status"></div>
+    <footer>Pick & Guess · Multiplayer prototype</footer>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
